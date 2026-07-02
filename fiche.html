@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fiche de restitution — redirection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:system-ui,Arial,sans-serif;display:flex;min-height:100vh;
+       align-items:center;justify-content:center;margin:0;color:#333;background:#f5f5f5}
+  .box{text-align:center;max-width:32rem;padding:1.5rem}
+  .err{color:#b00020}
+  a{color:#000091}
+</style>
+</head>
+<body>
+<div class="box" id="msg">Redirection en cours…</div>
+
+<script>
+/* =================== À PERSONNALISER =================== */
+
+// 1) URL publique de VOTRE formulaire Grist (celle qui contient /forms/...)
+const FORM_URL  = "https://grist.numerique.gouv.fr/o/docs/forms/XXXXXXXX/7";
+
+// 2) URL de la PAGE d'impression dans Grist (la page qui contient le widget A4).
+//    Remplacez /p/6 par le numéro réel de votre page d'impression.
+const PRINT_URL = "https://grist.numerique.gouv.fr/o/docs/iALgqenUZWFg/Lettre-de-mission-Mode-Projet-Flash/p/6";
+
+// 3) Nom de la colonne clé (identique dans la table, le champ caché du formulaire,
+//    et la règle d'accès Grist).
+const CLE = "cle_impression";
+
+/* ====================================================== */
+
+const params = new URLSearchParams(location.search);
+const msg = document.getElementById("msg");
+function go(url){ location.replace(url); }
+
+if (params.get("retour")) {
+  // --- Étape 2 : retour après soumission -> page d'impression ---
+  const cle = localStorage.getItem(CLE);
+  if (!cle) {
+    msg.innerHTML = '<p class="err">Clé introuvable.</p>' +
+      '<p>Merci de recommencer depuis le lien de départ du formulaire.</p>';
+  } else {
+    const sep = PRINT_URL.includes("?") ? "&" : "?";
+    // Clé de lien Grist = nom de colonne + "_" (souligné FINAL, important)
+    go(PRINT_URL + sep + CLE + "_=" + encodeURIComponent(cle) + "&embed=true");
+  }
+} else {
+  // --- Étape 1 : départ -> génère une clé et ouvre le formulaire ---
+  const cle = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Date.now() + "-" + Math.random().toString(16).slice(2);
+  localStorage.setItem(CLE, cle);
+  const sep = FORM_URL.includes("?") ? "&" : "?";
+  // Préremplissage du champ caché : nom de colonne SANS souligné final
+  go(FORM_URL + sep + CLE + "=" + encodeURIComponent(cle));
+}
+</script>
+</body>
+</html>
