@@ -75,6 +75,8 @@
   }
   .titre{font-size:24px; font-weight:700; color:var(--bleu-france); margin:0; line-height:1.15}
   .filet{height:2px; background:var(--bleu-france); border:0; margin:14px 0 0}
+  .objet{font-size:12.5px; line-height:1.35; color:var(--encre); margin:12px 0 0}
+  .objet strong{font-weight:700}
 
   /* Sections */
   .section{margin-top:22px; break-inside:avoid}
@@ -126,24 +128,57 @@
    CONFIGURATION  —  seule cette partie est à personnaliser
    ========================================================= */
 const CONFIG = {
-  titre:    "Fiche de restitution",
-  surtitre: "",   // petit texte gris au-dessus du titre (optionnel)
+  titre:    "Lettre de mission",
+  surtitre: "Mode projet « flash »",
   service:  "Direction départementale des territoires\nde la Haute-Garonne",
+  objet:    "Désignation d’un chef de projet et mise en place d’une équipe-projet pour mener un projet transversal.",
 
-  // Bloc-marque officiel en IMAGE (optionnel). Si renseigné, remplace le
-  // bloc-marque texte. Récupérez-le sur la charte de l'État (info.gouv.fr).
+  // Bloc-marque officiel en IMAGE (optionnel). Récupérable sur info.gouv.fr.
   logoUrl:  "",
-
-  autoImpression: false,   // true = ouvre la boîte d'impression automatiquement
+  autoImpression: false,
 
   colonnesMasquees: ["fiche_markdown", "cle_impression", "manualSort"],
-  libelles: {},            // ex : { Nom_projet: "Nom du projet" }
-  colonnesDate: [],        // ex : ["Date_debut", "Date_fin"]
+  colonnesDate: ["Date_lettre", "Date_lancement", "Date_fin_envisagee"],
+
+  libelles: {
+    Localisation:       "Localisation",
+    Date_lettre:        "Date de la lettre",
+    SEEF_actif:  "Service Environnement Eau et Forêt (SEEF)",
+    SEA_actif:   "Service Économie Agricole (SEA)",
+    SRGC_actif:  "Service Risques et Gestion de Crises (SRGC)",
+    SLCD_actif:  "Service Logement et Construction Durables (SLCD)",
+    ST_actif:    "Service Territorial (ST)",
+    MAJC_actif:  "Mission Affaires Juridiques et Contrôles (MAJC)",
+    MICIP_actif: "Mission Connaissance Innovation Pilotage (MICIP)",
+    SEEF_agents:  "Agents mobilisés – SEEF",
+    SEA_agents:   "Agents mobilisés – SEA",
+    SRGC_agents:  "Agents mobilisés – SRGC",
+    SLCD_agents:  "Agents mobilisés – SLCD",
+    ST_agents:    "Agents mobilisés – ST",
+    MAJC_agents:  "Agents mobilisés – MAJC",
+    MICIP_agents: "Agents mobilisés – MICIP",
+    Date_lancement:     "Date de lancement",
+    Date_fin_envisagee: "Date de fin envisagée",
+  },
+
   sections: [
-    // { titre: "Informations générales",   colonnes: ["Nom_projet", "Porteur"] },
-    // { titre: "Critères de qualification", colonnes: [] },
-    // { titre: "Cadrage du projet",         colonnes: [] },
-    // { titre: "Services mobilisés",        colonnes: [] },
+    { titre: "Informations", colonnes: [
+        "Nom_projet", "Porteur", "Localisation", "Chef_de_projet", "Date_lettre" ] },
+
+    { titre: "Critères obligatoires", colonnes: [
+        "TRANSVERSALITE", "COMPLEXITE" ] },
+
+    { titre: "Critères facultatifs", colonnes: [
+        "TEMPORALITE", "ARBITRAGE", "ENJEU_POLITIQUE", "INNOVATION" ] },
+
+    { titre: "Services mobilisés", colonnes: [
+        "SEEF_actif", "SEEF_agents", "SEA_actif", "SEA_agents",
+        "SRGC_actif", "SRGC_agents", "SLCD_actif", "SLCD_agents",
+        "ST_actif", "ST_agents", "MAJC_actif", "MAJC_agents",
+        "MICIP_actif", "MICIP_agents" ] },
+
+    { titre: "Objectifs et livrables", colonnes: [
+        "Objectif", "Livrables", "Date_lancement", "Date_fin_envisagee" ] },
   ],
 };
 /* ===================== FIN CONFIG ========================= */
@@ -152,6 +187,11 @@ const CONFIG = {
 const app = document.getElementById("app");
 
 function prettifier(colId){ return String(colId).replace(/_/g, " "); }
+
+function normalise(s){
+  return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
 
 function estVide(v){
   return v === null || v === undefined || v === "" ||
@@ -260,10 +300,22 @@ function rendreFiche(record, plusieurs){
   filet.className = "filet";
   page.appendChild(filet);
 
+  if (CONFIG.objet){
+    const o = document.createElement("p");
+    o.className = "objet";
+    o.innerHTML = "<strong>Objet :</strong> ";
+    o.appendChild(document.createTextNode(CONFIG.objet));
+    page.appendChild(o);
+  }
+
+  const parNorm = {};
+  dispo.forEach(c => { parNorm[normalise(c)] = c; });
+  const resoudre = nom => parNorm[normalise(nom)];
+
   const utilisees = new Set();
   if (CONFIG.sections.length){
     CONFIG.sections.forEach(sec => {
-      const cols = (sec.colonnes || []).filter(c => dispo.includes(c));
+      const cols = (sec.colonnes || []).map(resoudre).filter(c => c && !utilisees.has(c));
       cols.forEach(c => utilisees.add(c));
       if (cols.length) page.appendChild(bloc(sec.titre, cols, record));
     });
