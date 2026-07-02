@@ -6,71 +6,91 @@
 <title>Fiche de restitution</title>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 <style>
+  /* ---------------------------------------------------------------
+     Police Marianne (DSFR). Chargée depuis le CDN officiel.
+     Repli : Arial (substitut autorisé par la charte en bureautique).
+     >> Réseau qui bloque le CDN ? Téléchargez le zip du DSFR, mettez
+        les .woff2 dans un dossier "fonts/" de votre dépôt GitHub, et
+        remplacez le préfixe d'URL ci-dessous par :  fonts/
+     --------------------------------------------------------------- */
+  @font-face{font-family:'Marianne';font-weight:400;font-style:normal;font-display:swap;
+    src:url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.2/dist/fonts/Marianne-Regular.woff2') format('woff2')}
+  @font-face{font-family:'Marianne';font-weight:500;font-style:normal;font-display:swap;
+    src:url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.2/dist/fonts/Marianne-Medium.woff2') format('woff2')}
+  @font-face{font-family:'Marianne';font-weight:700;font-style:normal;font-display:swap;
+    src:url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.2/dist/fonts/Marianne-Bold.woff2') format('woff2')}
+  @font-face{font-family:'Marianne';font-weight:400;font-style:italic;font-display:swap;
+    src:url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.2/dist/fonts/Marianne-Regular_Italic.woff2') format('woff2')}
+
   :root{
-    --bleu:#000091;      /* Bleu République */
-    --encre:#161616;
-    --gris-label:#5b6069;
-    --filet:#e2e2e6;
-    --fond-ecran:#f2f2f4;
+    --bleu-france:#000091;   /* Bleu France (DSFR) */
+    --rouge:#e1000f;         /* Rouge Marianne */
+    --encre:#161616;         /* grey-1000 */
+    --gris-label:#666666;    /* grey-425 */
+    --filet:#dddddd;         /* grey-900-175 */
+    --fond-ecran:#eeeeee;
     --papier:#ffffff;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
-    color:var(--encre);
-    background:var(--fond-ecran);
+    font-family:'Marianne',Arial,sans-serif;
+    color:var(--encre); background:var(--fond-ecran);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
 
   /* Barre d'action (écran uniquement) */
-  .toolbar{
-    position:fixed; top:12px; right:16px; z-index:10;
-    display:flex; gap:8px;
-  }
+  .toolbar{position:fixed; top:12px; right:16px; z-index:10}
   .btn{
-    font:inherit; font-weight:600; cursor:pointer;
-    border:1px solid var(--bleu); background:var(--bleu); color:#fff;
-    padding:.55rem 1rem; border-radius:4px;
+    font-family:inherit; font-size:14px; font-weight:500; cursor:pointer;
+    border:1px solid var(--bleu-france); background:var(--bleu-france); color:#fff;
+    padding:.55rem 1rem; border-radius:0;
   }
-  .btn:focus-visible{outline:3px solid #a1a1ff; outline-offset:2px}
-  .btn:hover{filter:brightness(1.08)}
+  .btn:hover{background:#1212ff}
+  .btn:focus-visible{outline:2px solid #0a76f6; outline-offset:2px}
 
   /* Feuille A4 */
   .page{
-    background:var(--papier);
-    width:210mm; min-height:297mm;
-    margin:24px auto; padding:16mm 16mm 18mm;
+    background:var(--papier); width:210mm; min-height:297mm;
+    margin:24px auto; padding:16mm 16mm 16mm;
     box-shadow:0 2px 18px rgba(0,0,0,.12);
   }
 
-  /* En-tête */
-  .entete{display:flex; align-items:center; gap:18px; padding-bottom:12px}
-  .entete img{max-height:64px; max-width:200px; width:auto; height:auto}
-  .entete .titres{margin-left:auto; text-align:right}
-  .eyebrow{
-    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  /* En-tête : bloc-marque à gauche, titre à droite */
+  .entete{display:flex; justify-content:space-between; align-items:flex-start; gap:24px}
+  .bloc-marque{
+    font-weight:700; text-transform:uppercase; font-size:15px; line-height:1.05;
+    letter-spacing:.01em; margin:0; color:var(--encre);
+  }
+  .devise{font-style:italic; font-size:10px; color:#3a3a3a; margin:4px 0 0}
+  .service{
+    font-weight:500; font-size:12.5px; line-height:1.25; color:var(--encre);
+    margin:12px 0 0; max-width:70mm;
+  }
+  .marque img{max-height:80px; max-width:78mm; width:auto; height:auto; display:block}
+  .doc{text-align:right; padding-top:2px}
+  .surtitre{
+    font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase;
     color:var(--gris-label); margin:0 0 4px;
   }
-  .titre{font-size:26px; font-weight:700; color:var(--bleu); margin:0; line-height:1.15}
-  .filet-bleu{height:3px; background:var(--bleu); border:0; margin:0 0 6px}
+  .titre{font-size:24px; font-weight:700; color:var(--bleu-france); margin:0; line-height:1.15}
+  .filet{height:2px; background:var(--bleu-france); border:0; margin:14px 0 0}
 
   /* Sections */
   .section{margin-top:22px; break-inside:avoid}
   .section > h2{
-    font-size:12px; letter-spacing:.10em; text-transform:uppercase;
-    color:var(--bleu); margin:0 0 8px; padding-bottom:6px;
+    font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--bleu-france); margin:0 0 8px; padding-bottom:6px;
     border-bottom:1px solid var(--filet);
   }
   .kv{
-    display:grid; grid-template-columns:38% 62%;
-    gap:2px 16px; padding:6px 0; break-inside:avoid;
-    border-bottom:1px dotted var(--filet);
+    display:grid; grid-template-columns:38% 62%; gap:2px 16px;
+    padding:6px 0; break-inside:avoid; border-bottom:1px dotted var(--filet);
   }
   .kv:last-child{border-bottom:0}
-  .kv .label{color:var(--gris-label); font-size:13px; padding-top:1px}
+  .kv .label{color:var(--gris-label); font-size:13px}
   .kv .value{font-size:14px; white-space:pre-wrap; word-break:break-word}
-  .value.vide{color:#b8bcc4}
+  .value.vide{color:#b0b0b0}
 
   /* Pied */
   .pied{
@@ -81,8 +101,8 @@
   /* États */
   .message{max-width:520px; margin:80px auto; text-align:center; color:var(--gris-label)}
   .note{
-    background:#fff6e6; border:1px solid #f0d9a8; color:#6b4e00;
-    font-size:12px; padding:8px 12px; border-radius:4px; margin:0 0 12px;
+    background:#fff4d6; border-left:4px solid #e5c400; color:#5a4b00;
+    font-size:12px; padding:8px 12px; margin:0 0 14px;
   }
 
   @page{ size:A4; margin:14mm 16mm; }
@@ -99,34 +119,26 @@
   <button class="btn" id="btn-print" type="button">Imprimer / Enregistrer en PDF</button>
 </div>
 
-<div id="app">
-  <div class="message">Chargement de la fiche…</div>
-</div>
+<div id="app"><div class="message">Chargement de la fiche…</div></div>
 
 <script>
 /* =========================================================
    CONFIGURATION  —  seule cette partie est à personnaliser
    ========================================================= */
 const CONFIG = {
-  titre:     "Fiche de restitution",
-  sousTitre: "DDT de la Haute-Garonne",
-  logoUrl:   "",            // URL d'un logo (PNG/SVG). Laisser "" si aucun.
-  autoImpression: false,    // true = ouvre la boîte d'impression automatiquement
+  titre:    "Fiche de restitution",
+  surtitre: "",   // petit texte gris au-dessus du titre (optionnel)
+  service:  "Direction départementale des territoires\nde la Haute-Garonne",
 
-  // Colonnes techniques à NE PAS afficher
+  // Bloc-marque officiel en IMAGE (optionnel). Si renseigné, remplace le
+  // bloc-marque texte. Récupérez-le sur la charte de l'État (info.gouv.fr).
+  logoUrl:  "",
+
+  autoImpression: false,   // true = ouvre la boîte d'impression automatiquement
+
   colonnesMasquees: ["fiche_markdown", "cle_impression", "manualSort"],
-
-  // Libellés lisibles (sinon le nom de colonne est utilisé, "_" -> espace)
-  //   ex : { Nom_projet: "Nom du projet", Porteur: "Porteur du projet" }
-  libelles: {},
-
-  // Colonnes de type date qui s'afficheraient en nombre : forcer le format date
-  //   ex : ["Date_debut", "Date_fin"]
-  colonnesDate: [],
-
-  // Regroupement en sections (OPTIONNEL).
-  // Si le tableau est vide, tous les champs sont listés d'un bloc.
-  // Les champs non cités ici seront ajoutés à la fin sous « Autres informations ».
+  libelles: {},            // ex : { Nom_projet: "Nom du projet" }
+  colonnesDate: [],        // ex : ["Date_debut", "Date_fin"]
   sections: [
     // { titre: "Informations générales",   colonnes: ["Nom_projet", "Porteur"] },
     // { titre: "Critères de qualification", colonnes: [] },
@@ -139,9 +151,7 @@ const CONFIG = {
 
 const app = document.getElementById("app");
 
-function prettifier(colId){
-  return String(colId).replace(/_/g, " ");
-}
+function prettifier(colId){ return String(colId).replace(/_/g, " "); }
 
 function estVide(v){
   return v === null || v === undefined || v === "" ||
@@ -156,22 +166,14 @@ function formaterDate(d){
 
 function formaterValeur(colId, v){
   if (estVide(v)) return { texte: "—", vide: true };
-
   if (typeof v === "boolean") return { texte: v ? "Oui" : "Non", vide: false };
-
   if (v instanceof Date) return { texte: formaterDate(v), vide: false };
-
-  // Date stockée en nombre (secondes) et déclarée dans colonnesDate
-  if (typeof v === "number" && CONFIG.colonnesDate.includes(colId)) {
+  if (typeof v === "number" && CONFIG.colonnesDate.includes(colId))
     return { texte: formaterDate(new Date(v * 1000)), vide: false };
-  }
-
-  if (Array.isArray(v)) {
-    // ChoiceList / listes : on retire un éventuel marqueur Grist "L" en tête
+  if (Array.isArray(v)){
     const items = v[0] === "L" ? v.slice(1) : v;
     return { texte: items.join(", "), vide: false };
   }
-
   return { texte: String(v), vide: false };
 }
 
@@ -180,8 +182,7 @@ function ligneKV(colId, valeur){
   const { texte, vide } = formaterValeur(colId, valeur);
   const el = document.createElement("div");
   el.className = "kv";
-  el.innerHTML =
-    '<div class="label"></div><div class="value' + (vide ? " vide" : "") + '"></div>';
+  el.innerHTML = '<div class="label"></div><div class="value' + (vide ? " vide" : "") + '"></div>';
   el.querySelector(".label").textContent = label;
   el.querySelector(".value").textContent = texte;
   return el;
@@ -202,8 +203,44 @@ function bloc(titre, colonnes, record){
 function colonnesAffichables(record){
   const masquees = new Set(CONFIG.colonnesMasquees.concat(["id"]));
   return Object.keys(record).filter(c =>
-    !masquees.has(c) && !c.startsWith("gristHelper_") && !c.startsWith("_")
-  );
+    !masquees.has(c) && !c.startsWith("gristHelper_") && !c.startsWith("_"));
+}
+
+function entete(){
+  const h = document.createElement("header");
+  h.className = "entete";
+
+  const marque = document.createElement("div");
+  marque.className = "marque";
+  if (CONFIG.logoUrl){
+    const img = document.createElement("img");
+    img.src = CONFIG.logoUrl; img.alt = "République Française";
+    marque.appendChild(img);
+  } else {
+    const bm = document.createElement("p");
+    bm.className = "bloc-marque";
+    bm.innerHTML = "République<br>Française";
+    const dev = document.createElement("p");
+    dev.className = "devise";
+    dev.textContent = "Liberté · Égalité · Fraternité";
+    marque.appendChild(bm); marque.appendChild(dev);
+  }
+  if (CONFIG.service){
+    const s = document.createElement("p");
+    s.className = "service";
+    s.textContent = CONFIG.service;
+    marque.appendChild(s);
+  }
+
+  const doc = document.createElement("div");
+  doc.className = "doc";
+  doc.innerHTML =
+    (CONFIG.surtitre ? '<p class="surtitre"></p>' : "") + '<h1 class="titre"></h1>';
+  if (CONFIG.surtitre) doc.querySelector(".surtitre").textContent = CONFIG.surtitre;
+  doc.querySelector(".titre").textContent = CONFIG.titre || "Fiche";
+
+  h.appendChild(marque); h.appendChild(doc);
+  return h;
 }
 
 function rendreFiche(record, plusieurs){
@@ -214,29 +251,15 @@ function rendreFiche(record, plusieurs){
   if (plusieurs){
     const note = document.createElement("p");
     note.className = "note";
-    note.textContent =
-      "Plusieurs fiches sont visibles ici : la première est affichée. En usage normal (lien avec clé), une seule fiche apparaît.";
+    note.textContent = "Plusieurs fiches sont visibles ici : la première est affichée. En usage normal (lien avec clé), une seule fiche apparaît.";
     page.appendChild(note);
   }
 
-  // En-tête
-  const entete = document.createElement("header");
-  entete.className = "entete";
-  entete.innerHTML =
-    (CONFIG.logoUrl ? '<img alt="Logo" src="' + CONFIG.logoUrl + '">' : "") +
-    '<div class="titres">' +
-      '<p class="eyebrow"></p>' +
-      '<h1 class="titre"></h1>' +
-    '</div>';
-  entete.querySelector(".eyebrow").textContent = CONFIG.sousTitre || "";
-  entete.querySelector(".titre").textContent = CONFIG.titre || "Fiche";
-  page.appendChild(entete);
-
+  page.appendChild(entete());
   const filet = document.createElement("hr");
-  filet.className = "filet-bleu";
+  filet.className = "filet";
   page.appendChild(filet);
 
-  // Sections
   const utilisees = new Set();
   if (CONFIG.sections.length){
     CONFIG.sections.forEach(sec => {
@@ -250,14 +273,13 @@ function rendreFiche(record, plusieurs){
     page.appendChild(bloc("", dispo, record));
   }
 
-  // Pied
   const pied = document.createElement("footer");
   pied.className = "pied";
-  const gauche = document.createElement("span");
-  gauche.textContent = CONFIG.sousTitre || "";
-  const droite = document.createElement("span");
-  droite.textContent = "Éditée le " + formaterDate(new Date());
-  pied.appendChild(gauche); pied.appendChild(droite);
+  const g = document.createElement("span");
+  g.textContent = "RÉPUBLIQUE FRANÇAISE";
+  const d = document.createElement("span");
+  d.textContent = "Éditée le " + formaterDate(new Date());
+  pied.appendChild(g); pied.appendChild(d);
   page.appendChild(pied);
 
   app.innerHTML = "";
@@ -267,17 +289,14 @@ function rendreFiche(record, plusieurs){
 }
 
 function messageVide(){
-  app.innerHTML =
-    '<div class="message">Aucune fiche à afficher.<br>' +
+  app.innerHTML = '<div class="message">Aucune fiche à afficher.<br>' +
     'Ouvrez cette page via le lien généré après l’envoi du formulaire.</div>';
 }
 
 document.getElementById("btn-print").addEventListener("click", () => window.print());
 
-/* ---- Connexion à Grist ---- */
 if (typeof grist === "undefined"){
-  app.innerHTML =
-    '<div class="message">Impossible de charger l’API Grist.<br>' +
+  app.innerHTML = '<div class="message">Impossible de charger l’API Grist.<br>' +
     'Cette page doit être ajoutée comme « widget personnalisé » dans Grist.</div>';
 } else {
   grist.ready({ requiredAccess: "read table" });
