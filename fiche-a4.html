@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche de restitution</title>
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<style>
+  :root{
+    --bleu:#000091;      /* Bleu République */
+    --encre:#161616;
+    --gris-label:#5b6069;
+    --filet:#e2e2e6;
+    --fond-ecran:#f2f2f4;
+    --papier:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    color:var(--encre);
+    background:var(--fond-ecran);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+
+  /* Barre d'action (écran uniquement) */
+  .toolbar{
+    position:fixed; top:12px; right:16px; z-index:10;
+    display:flex; gap:8px;
+  }
+  .btn{
+    font:inherit; font-weight:600; cursor:pointer;
+    border:1px solid var(--bleu); background:var(--bleu); color:#fff;
+    padding:.55rem 1rem; border-radius:4px;
+  }
+  .btn:focus-visible{outline:3px solid #a1a1ff; outline-offset:2px}
+  .btn:hover{filter:brightness(1.08)}
+
+  /* Feuille A4 */
+  .page{
+    background:var(--papier);
+    width:210mm; min-height:297mm;
+    margin:24px auto; padding:16mm 16mm 18mm;
+    box-shadow:0 2px 18px rgba(0,0,0,.12);
+  }
+
+  /* En-tête */
+  .entete{display:flex; align-items:center; gap:18px; padding-bottom:12px}
+  .entete img{max-height:64px; max-width:200px; width:auto; height:auto}
+  .entete .titres{margin-left:auto; text-align:right}
+  .eyebrow{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--gris-label); margin:0 0 4px;
+  }
+  .titre{font-size:26px; font-weight:700; color:var(--bleu); margin:0; line-height:1.15}
+  .filet-bleu{height:3px; background:var(--bleu); border:0; margin:0 0 6px}
+
+  /* Sections */
+  .section{margin-top:22px; break-inside:avoid}
+  .section > h2{
+    font-size:12px; letter-spacing:.10em; text-transform:uppercase;
+    color:var(--bleu); margin:0 0 8px; padding-bottom:6px;
+    border-bottom:1px solid var(--filet);
+  }
+  .kv{
+    display:grid; grid-template-columns:38% 62%;
+    gap:2px 16px; padding:6px 0; break-inside:avoid;
+    border-bottom:1px dotted var(--filet);
+  }
+  .kv:last-child{border-bottom:0}
+  .kv .label{color:var(--gris-label); font-size:13px; padding-top:1px}
+  .kv .value{font-size:14px; white-space:pre-wrap; word-break:break-word}
+  .value.vide{color:#b8bcc4}
+
+  /* Pied */
+  .pied{
+    margin-top:26px; padding-top:8px; border-top:1px solid var(--filet);
+    font-size:10.5px; color:var(--gris-label); display:flex; justify-content:space-between;
+  }
+
+  /* États */
+  .message{max-width:520px; margin:80px auto; text-align:center; color:var(--gris-label)}
+  .note{
+    background:#fff6e6; border:1px solid #f0d9a8; color:#6b4e00;
+    font-size:12px; padding:8px 12px; border-radius:4px; margin:0 0 12px;
+  }
+
+  @page{ size:A4; margin:14mm 16mm; }
+  @media print{
+    body{background:#fff}
+    .toolbar,.note{display:none}
+    .page{width:auto; min-height:auto; margin:0; padding:0; box-shadow:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button class="btn" id="btn-print" type="button">Imprimer / Enregistrer en PDF</button>
+</div>
+
+<div id="app">
+  <div class="message">Chargement de la fiche…</div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURATION  —  seule cette partie est à personnaliser
+   ========================================================= */
+const CONFIG = {
+  titre:     "Fiche de restitution",
+  sousTitre: "DDT de la Haute-Garonne",
+  logoUrl:   "",            // URL d'un logo (PNG/SVG). Laisser "" si aucun.
+  autoImpression: false,    // true = ouvre la boîte d'impression automatiquement
+
+  // Colonnes techniques à NE PAS afficher
+  colonnesMasquees: ["fiche_markdown", "cle_impression", "manualSort"],
+
+  // Libellés lisibles (sinon le nom de colonne est utilisé, "_" -> espace)
+  //   ex : { Nom_projet: "Nom du projet", Porteur: "Porteur du projet" }
+  libelles: {},
+
+  // Colonnes de type date qui s'afficheraient en nombre : forcer le format date
+  //   ex : ["Date_debut", "Date_fin"]
+  colonnesDate: [],
+
+  // Regroupement en sections (OPTIONNEL).
+  // Si le tableau est vide, tous les champs sont listés d'un bloc.
+  // Les champs non cités ici seront ajoutés à la fin sous « Autres informations ».
+  sections: [
+    // { titre: "Informations générales",   colonnes: ["Nom_projet", "Porteur"] },
+    // { titre: "Critères de qualification", colonnes: [] },
+    // { titre: "Cadrage du projet",         colonnes: [] },
+    // { titre: "Services mobilisés",        colonnes: [] },
+  ],
+};
+/* ===================== FIN CONFIG ========================= */
+
+
+const app = document.getElementById("app");
+
+function prettifier(colId){
+  return String(colId).replace(/_/g, " ");
+}
+
+function estVide(v){
+  return v === null || v === undefined || v === "" ||
+         (Array.isArray(v) && v.length === 0);
+}
+
+function formaterDate(d){
+  const j = String(d.getDate()).padStart(2, "0");
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return j + "/" + m + "/" + d.getFullYear();
+}
+
+function formaterValeur(colId, v){
+  if (estVide(v)) return { texte: "—", vide: true };
+
+  if (typeof v === "boolean") return { texte: v ? "Oui" : "Non", vide: false };
+
+  if (v instanceof Date) return { texte: formaterDate(v), vide: false };
+
+  // Date stockée en nombre (secondes) et déclarée dans colonnesDate
+  if (typeof v === "number" && CONFIG.colonnesDate.includes(colId)) {
+    return { texte: formaterDate(new Date(v * 1000)), vide: false };
+  }
+
+  if (Array.isArray(v)) {
+    // ChoiceList / listes : on retire un éventuel marqueur Grist "L" en tête
+    const items = v[0] === "L" ? v.slice(1) : v;
+    return { texte: items.join(", "), vide: false };
+  }
+
+  return { texte: String(v), vide: false };
+}
+
+function ligneKV(colId, valeur){
+  const label = CONFIG.libelles[colId] || prettifier(colId);
+  const { texte, vide } = formaterValeur(colId, valeur);
+  const el = document.createElement("div");
+  el.className = "kv";
+  el.innerHTML =
+    '<div class="label"></div><div class="value' + (vide ? " vide" : "") + '"></div>';
+  el.querySelector(".label").textContent = label;
+  el.querySelector(".value").textContent = texte;
+  return el;
+}
+
+function bloc(titre, colonnes, record){
+  const section = document.createElement("section");
+  section.className = "section";
+  if (titre){
+    const h = document.createElement("h2");
+    h.textContent = titre;
+    section.appendChild(h);
+  }
+  colonnes.forEach(colId => section.appendChild(ligneKV(colId, record[colId])));
+  return section;
+}
+
+function colonnesAffichables(record){
+  const masquees = new Set(CONFIG.colonnesMasquees.concat(["id"]));
+  return Object.keys(record).filter(c =>
+    !masquees.has(c) && !c.startsWith("gristHelper_") && !c.startsWith("_")
+  );
+}
+
+function rendreFiche(record, plusieurs){
+  const dispo = colonnesAffichables(record);
+  const page = document.createElement("div");
+  page.className = "page";
+
+  if (plusieurs){
+    const note = document.createElement("p");
+    note.className = "note";
+    note.textContent =
+      "Plusieurs fiches sont visibles ici : la première est affichée. En usage normal (lien avec clé), une seule fiche apparaît.";
+    page.appendChild(note);
+  }
+
+  // En-tête
+  const entete = document.createElement("header");
+  entete.className = "entete";
+  entete.innerHTML =
+    (CONFIG.logoUrl ? '<img alt="Logo" src="' + CONFIG.logoUrl + '">' : "") +
+    '<div class="titres">' +
+      '<p class="eyebrow"></p>' +
+      '<h1 class="titre"></h1>' +
+    '</div>';
+  entete.querySelector(".eyebrow").textContent = CONFIG.sousTitre || "";
+  entete.querySelector(".titre").textContent = CONFIG.titre || "Fiche";
+  page.appendChild(entete);
+
+  const filet = document.createElement("hr");
+  filet.className = "filet-bleu";
+  page.appendChild(filet);
+
+  // Sections
+  const utilisees = new Set();
+  if (CONFIG.sections.length){
+    CONFIG.sections.forEach(sec => {
+      const cols = (sec.colonnes || []).filter(c => dispo.includes(c));
+      cols.forEach(c => utilisees.add(c));
+      if (cols.length) page.appendChild(bloc(sec.titre, cols, record));
+    });
+    const reste = dispo.filter(c => !utilisees.has(c));
+    if (reste.length) page.appendChild(bloc("Autres informations", reste, record));
+  } else {
+    page.appendChild(bloc("", dispo, record));
+  }
+
+  // Pied
+  const pied = document.createElement("footer");
+  pied.className = "pied";
+  const gauche = document.createElement("span");
+  gauche.textContent = CONFIG.sousTitre || "";
+  const droite = document.createElement("span");
+  droite.textContent = "Éditée le " + formaterDate(new Date());
+  pied.appendChild(gauche); pied.appendChild(droite);
+  page.appendChild(pied);
+
+  app.innerHTML = "";
+  app.appendChild(page);
+
+  if (CONFIG.autoImpression) setTimeout(() => window.print(), 400);
+}
+
+function messageVide(){
+  app.innerHTML =
+    '<div class="message">Aucune fiche à afficher.<br>' +
+    'Ouvrez cette page via le lien généré après l’envoi du formulaire.</div>';
+}
+
+document.getElementById("btn-print").addEventListener("click", () => window.print());
+
+/* ---- Connexion à Grist ---- */
+if (typeof grist === "undefined"){
+  app.innerHTML =
+    '<div class="message">Impossible de charger l’API Grist.<br>' +
+    'Cette page doit être ajoutée comme « widget personnalisé » dans Grist.</div>';
+} else {
+  grist.ready({ requiredAccess: "read table" });
+  grist.onRecords(function(records){
+    if (!records || records.length === 0){ messageVide(); return; }
+    rendreFiche(records[0], records.length > 1);
+  });
+}
+</script>
+</body>
+</html>
