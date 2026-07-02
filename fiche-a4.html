@@ -128,8 +128,8 @@
    CONFIGURATION  —  seule cette partie est à personnaliser
    ========================================================= */
 const CONFIG = {
-  titre:    "Lettre de mission",
-  surtitre: "Mode projet « flash »",
+  titre:    "Fiche de restitution",
+  surtitre: "Lettre de mission · mode projet « flash »",
   service:  "Direction départementale des territoires\nde la Haute-Garonne",
   objet:    "Désignation d’un chef de projet et mise en place d’une équipe-projet pour mener un projet transversal.",
 
@@ -138,11 +138,24 @@ const CONFIG = {
   autoImpression: false,
 
   colonnesMasquees: ["fiche_markdown", "cle_impression", "manualSort"],
-  colonnesDate: ["Date_lettre", "Date_lancement", "Date_fin_envisagee"],
+  colonnesDate: ["Date_lettre", "Date_lancement", "Date_fin_envisagee",
+                 "Date_soumission", "date_cloture_effective"],
 
   libelles: {
-    Localisation:       "Localisation",
-    Date_lettre:        "Date de la lettre",
+    Nom_projet:    "Nom du projet",
+    Porteur_projet:"Porteur de projet",
+    Localisation:  "Localisation",
+    Cheffe_projet: "Chef(fe) de projet",
+    Date_lettre:   "Date de la lettre",
+
+    Critere_plusieurs_procedures: "Transversalité",
+    Critere_complexite:           "Complexité",
+    Critere_mobilisation_reactive:"Temporalité",
+    Critere_arbitrage:            "Nécessité d’arbitrage",
+    Critere_enjeu_politique:      "Enjeu politique",
+    Critere_procedure_innovante:  "Innovation",
+    Autres_criteres_facultatifs_pertinents: "Autres critères facultatifs pertinents",
+
     SEEF_actif:  "Service Environnement Eau et Forêt (SEEF)",
     SEA_actif:   "Service Économie Agricole (SEA)",
     SRGC_actif:  "Service Risques et Gestion de Crises (SRGC)",
@@ -157,19 +170,38 @@ const CONFIG = {
     ST_agents:    "Agents mobilisés – ST",
     MAJC_agents:  "Agents mobilisés – MAJC",
     MICIP_agents: "Agents mobilisés – MICIP",
+
+    Objectif:           "Objectif",
+    Livrables:          "Livrables",
     Date_lancement:     "Date de lancement",
     Date_fin_envisagee: "Date de fin envisagée",
+
+    etat_d_avancement:                            "État d’avancement",
+    echeances_intermediaires:                     "Échéances intermédiaires",
+    points_de_vigilance_sur_l_etat_d_avancement:  "Points de vigilance",
+    procedures_responsable_DDT_ou_non:            "Procédures : responsable DDT ou non",
+    Enjeux_DDT_thematiques:                       "Enjeux DDT / thématiques",
+    commentaires:                                 "Commentaires",
+    liens_vers_documents_sur_serveur:             "Liens vers les documents (serveur)",
+
+    Validation_Direction:  "Validation Direction",
+    Lettre_mission_validee:"Lettre de mission validée",
+    Statut_completude:     "Complétude",
+    Date_soumission:       "Date de soumission",
+    date_cloture_effective:"Date de clôture effective",
   },
 
   sections: [
     { titre: "Informations", colonnes: [
-        "Nom_projet", "Porteur", "Localisation", "Chef_de_projet", "Date_lettre" ] },
+        "Nom_projet", "Porteur_projet", "Localisation", "Cheffe_projet", "Date_lettre" ] },
 
     { titre: "Critères obligatoires", colonnes: [
-        "TRANSVERSALITE", "COMPLEXITE" ] },
+        "Critere_plusieurs_procedures", "Critere_complexite" ] },
 
     { titre: "Critères facultatifs", colonnes: [
-        "TEMPORALITE", "ARBITRAGE", "ENJEU_POLITIQUE", "INNOVATION" ] },
+        "Critere_mobilisation_reactive", "Critere_arbitrage",
+        "Critere_enjeu_politique", "Critere_procedure_innovante",
+        "Autres_criteres_facultatifs_pertinents" ] },
 
     { titre: "Services mobilisés", colonnes: [
         "SEEF_actif", "SEEF_agents", "SEA_actif", "SEA_agents",
@@ -179,6 +211,16 @@ const CONFIG = {
 
     { titre: "Objectifs et livrables", colonnes: [
         "Objectif", "Livrables", "Date_lancement", "Date_fin_envisagee" ] },
+
+    { titre: "Suivi du projet", colonnes: [
+        "etat_d_avancement", "echeances_intermediaires",
+        "points_de_vigilance_sur_l_etat_d_avancement",
+        "procedures_responsable_DDT_ou_non", "Enjeux_DDT_thematiques",
+        "commentaires", "liens_vers_documents_sur_serveur" ] },
+
+    { titre: "Validation et clôture", colonnes: [
+        "Validation_Direction", "Lettre_mission_validee", "Statut_completude",
+        "Date_soumission", "date_cloture_effective" ] },
   ],
 };
 /* ===================== FIN CONFIG ========================= */
