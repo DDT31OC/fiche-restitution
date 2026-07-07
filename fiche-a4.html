@@ -136,6 +136,7 @@ const CONFIG = {
   // Bloc-marque officiel en IMAGE (optionnel). Récupérable sur info.gouv.fr.
   logoUrl:  "",
   autoImpression: false,
+  masquerAutres: true,   // n'affiche QUE les champs listés dans "sections" (fiche = formulaire)
 
   colonnesMasquees: ["fiche_markdown", "cle_impression", "manualSort"],
   colonnesDate: ["Date_lettre", "Date_lancement", "Date_fin_envisagee",
@@ -200,8 +201,7 @@ const CONFIG = {
 
     { titre: "Critères facultatifs", colonnes: [
         "Critere_mobilisation_reactive", "Critere_arbitrage",
-        "Critere_enjeu_politique", "Critere_procedure_innovante",
-        "Autres_criteres_facultatifs_pertinents" ] },
+        "Critere_enjeu_politique", "Critere_procedure_innovante" ] },
 
     { titre: "Services mobilisés", colonnes: [
         "SEEF_actif", "SEEF_agents", "SEA_actif", "SEA_agents",
@@ -211,16 +211,6 @@ const CONFIG = {
 
     { titre: "Objectifs et livrables", colonnes: [
         "Objectif", "Livrables", "Date_lancement", "Date_fin_envisagee" ] },
-
-    { titre: "Suivi du projet", colonnes: [
-        "etat_d_avancement", "echeances_intermediaires",
-        "points_de_vigilance_sur_l_etat_d_avancement",
-        "procedures_responsable_DDT_ou_non", "Enjeux_DDT_thematiques",
-        "commentaires", "liens_vers_documents_sur_serveur" ] },
-
-    { titre: "Validation et clôture", colonnes: [
-        "Validation_Direction", "Lettre_mission_validee", "Statut_completude",
-        "Date_soumission", "date_cloture_effective" ] },
   ],
 };
 /* ===================== FIN CONFIG ========================= */
@@ -362,7 +352,7 @@ function rendreFiche(record, plusieurs){
       if (cols.length) page.appendChild(bloc(sec.titre, cols, record));
     });
     const reste = dispo.filter(c => !utilisees.has(c));
-    if (reste.length) page.appendChild(bloc("Autres informations", reste, record));
+    if (reste.length && !CONFIG.masquerAutres) page.appendChild(bloc("Autres informations", reste, record));
   } else {
     page.appendChild(bloc("", dispo, record));
   }
